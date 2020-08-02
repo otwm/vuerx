@@ -24,9 +24,30 @@ import type { Person } from "~/types";
 import Card from "~/components/Card.vue"
 import axios from 'axios'
 
+async function sendSearch (name: string) {
+  try {
+    const res = await axios({
+      url: '/server/people',
+      params: {
+        name,
+      }
+    })
+    return {
+      data: res.data
+    }
+  } catch (e) {
+    return {
+      error: e.toString()
+    }
+  }
+}
+
 @Component({
   components: {
     Card
+  },
+  methods: {
+    sendSearch,
   }
 })
 export default class extends Vue {
@@ -34,30 +55,14 @@ export default class extends Vue {
   name: string = ''
 
   async search () {
-    const { data, error } = await this.sendSearch()
+    // TODO: why?
+    // @ts-ignore
+    const { data, error } = await this.sendSearch(this.name)
     if (error) {
       alert('error: ' + error)
       return
     }
     this.people = data
-  }
-
-  async sendSearch () {
-    try {
-      const res = await axios({
-        url: '/server/people',
-        params: {
-          name: this.name,
-        }
-      })
-      return {
-        data: res.data
-      }
-    } catch (e) {
-      return {
-        error: e.toString()
-      }
-    }
   }
 }
 </script>
