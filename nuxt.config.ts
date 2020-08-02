@@ -18,5 +18,8 @@ export default {
   modules: [
     "@nuxtjs/axios",
   ],
-  axios: {}
+  axios: {},
+  serverMiddleware: [
+    { path: '/server', handler: '~/server/app'}
+  ]
 }
