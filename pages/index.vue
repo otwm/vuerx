@@ -19,6 +19,7 @@ import {
 import { State } from "vuex-class"
 import type { Person } from "~/types";
 import Card from "~/components/Card.vue"
+import axios from 'axios'
 
 @Component({
   components: {
@@ -27,6 +28,21 @@ import Card from "~/components/Card.vue"
 })
 export default class extends Vue {
   @State people!: Person[]
+
+  async mounted () {
+    console.log(await this.getRandomData())
+  }
+
+  async getRandomData () {
+    try {
+      const res = await axios({
+        url: '/random-data.json'
+      })
+      return res.data
+    } catch (e) {
+      console.log(e)
+    }
+  }
 }
 </script>
 
