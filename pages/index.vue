@@ -34,6 +34,15 @@ export default class extends Vue {
   name: string = ''
 
   async search () {
+    const { data, error } = await this.sendSearch()
+    if (error) {
+      alert('error: ' + error)
+      return
+    }
+    this.people = data
+  }
+
+  async sendSearch () {
     try {
       const res = await axios({
         url: '/server/people',
@@ -41,9 +50,13 @@ export default class extends Vue {
           name: this.name,
         }
       })
-      this.people = res.data
+      return {
+        data: res.data
+      }
     } catch (e) {
-      console.log(e)
+      return {
+        error: e.toString()
+      }
     }
   }
 }
