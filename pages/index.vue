@@ -20,7 +20,6 @@ import {
   Component,
   Vue
 } from "nuxt-property-decorator"
-import { State } from "vuex-class"
 import type { Person } from "~/types";
 import Card from "~/components/Card.vue"
 import axios from 'axios'
@@ -33,21 +32,6 @@ import axios from 'axios'
 export default class extends Vue {
   people: Person[] = []
   name: string = ''
-
-  async mounted () {
-    console.log(await this.getRandomData())
-  }
-
-  async getRandomData () {
-    try {
-      const res = await axios({
-        url: '/random-data.json'
-      })
-      return res.data
-    } catch (e) {
-      console.log(e)
-    }
-  }
 
   async search () {
     try {
