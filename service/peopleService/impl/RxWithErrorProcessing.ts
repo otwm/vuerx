@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { of } from 'rxjs'
 import { map, switchMap } from 'rxjs/operators'
+import { Person } from '~/types'
 
 interface Param {
   name: string;
@@ -12,7 +13,12 @@ interface ConvertedParam {
   psize: number;
 }
 
-const normalRx = {
+const RxWithErrorProcessing = {
+  /**
+   * replace 전략
+   * @param params
+   * @param observer
+   */
   search (params: Param, observer: any) {
     const query2Param = (params: Param): ConvertedParam => {
       const { name, size } = params
@@ -30,12 +36,23 @@ const normalRx = {
       switchMap(send)
     ).subscribe(observer)
   },
+  /**
+   * retry throw
+   * 3 retry
+   * and throw
+   * @param id
+   */
   detail (id: number) {
 
   },
-  insert (id: number) {
+  /**
+   * retry replace
+   * 3 retry
+   * and replace
+   */
+  insert (person: Person) {
 
-  },
+  }
 }
 
-export default normalRx
+export default RxWithErrorProcessing
