@@ -3,6 +3,12 @@
     <h1 class="header">Nuxt TypeScript Starter</h1>
     <div>
       <label for="name">name: </label><input type="text" name="name" id="name" v-model="name"/>
+      <label for="size">size: </label>
+      <select name="size" id="size" v-model="size">
+        <option>5</option>
+        <option>10</option>
+        <option>20</option>
+      </select>
       <button @click="search">search</button>
     </div>
     <div class="cards">
@@ -22,46 +28,29 @@ import {
 } from "nuxt-property-decorator"
 import type { Person } from "~/types";
 import Card from "~/components/Card.vue"
-import axios from 'axios'
+import normalRx from '~/service/peopleService/impl/normalRx'
+import observer from '~/utils/observer'
 
-async function sendSearch (name: string) {
-  try {
-    const res = await axios({
-      url: '/server/people',
-      params: {
-        name,
-      }
-    })
-    return {
-      data: res.data
-    }
-  } catch (e) {
-    return {
-      error: e.toString()
-    }
-  }
-}
+const { log } = console
 
 @Component({
   components: {
     Card
   },
-  methods: {
-    sendSearch,
-  }
 })
 export default class extends Vue {
   people: Person[] = []
   name: string = ''
+  size = 10
 
-  async search () {
-    // TODO: why?
-    // @ts-ignore
-    const { data, error } = await this.sendSearch(this.name)
-    if (error) {
-      alert('error: ' + error)
-      return
-    }
+  search () {
+    const { name, size } = this
+    normalRx.search({ name, size }, {
+      ...observer, next: this.setPeople
+    })
+  }
+
+  setPeople (data: Person[]) {
     this.people = data
   }
 }
