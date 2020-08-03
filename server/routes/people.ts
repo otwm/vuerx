@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import peopleData from '../../static/random-data.json'
+import { peopleRepo } from '../repository'
 
 const people = Router()
 
@@ -7,14 +7,13 @@ people.get('/', (req, res) => {
   if (req.query.pname === 'error') {
     throw new Error('wtf!')
   }
-  // @ts-ignore
-  const findName = ({ first_name, last_name }) => (`${first_name}${last_name}`).includes(req.query.pname)
-  // @ts-ignore
-  res.json(peopleData.filter(findName).slice(0, req.query.psize))
+  const people = peopleRepo.list(req!.query!.pname as string)
+  res.json(people!.slice(0, Number(req.query.psize)))
 })
 
 people.get('/:id', (req, res) => {
-  res.json(peopleData.find(({ id }) => id === Number(req.params.id)))
+  const person = peopleRepo.findById(Number(req!.query!.id))
+  res.json(person)
 })
 
 export default people
