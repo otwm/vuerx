@@ -1,1 +1,3 @@
-export * from './impl/normalRx'
+import normalRx from './impl/normalRx'
+
+export default normalRx

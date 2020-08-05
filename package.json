@@ -13,6 +13,9 @@
     "nuxt-property-decorator": "2.7.2",
     "ramda": "^0.27.1",
     "rxjs": "^6.6.2",
+    "sass": "^1.26.10",
+    "sass-loader": "^9.0.2",
+    "vee-validate": "^3.3.8",
     "vuex-class": "0.3.2"
   },
   "scripts": {

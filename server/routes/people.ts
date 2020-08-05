@@ -12,7 +12,7 @@ people.get('/', (req, res) => {
 })
 
 people.get('/:id', (req, res) => {
-  const person = peopleRepo.findById(Number(req!.query!.id))
+  const person = peopleRepo.findById(Number(req!.params!.id))
   res.json(person)
 })
 

@@ -1,6 +1,7 @@
 import axios from 'axios'
-import { of } from 'rxjs'
+import { defer, from, of } from 'rxjs'
 import { map, switchMap } from 'rxjs/operators'
+import { Person } from '~/types'
 
 interface Param {
   name: string;
@@ -30,12 +31,21 @@ const normalRx = {
       switchMap(send)
     ).subscribe(observer)
   },
-  detail (id: number) {
+  detail (id: number, observer: any) {
+    const send = async (id: number) => {
+      const res = await axios({
+        url: `/server/people/${id}`,
+      })
+      return res.data
+    }
+    from(send(id)).subscribe(observer)
+  },
+  insert (person: Person, observer: any) {
 
   },
-  insert (id: number) {
+  update (person: Person, observer: any) {
 
-  },
+  }
 }
 
 export default normalRx
