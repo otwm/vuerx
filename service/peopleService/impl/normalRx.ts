@@ -44,7 +44,6 @@ const normalRx = {
 
   },
   update (person: Person, observer: any) {
-
   }
 }
 

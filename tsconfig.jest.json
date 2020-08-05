@@ -12,6 +12,7 @@
     ],
     "module": "commonjs",
     "resolveJsonModule": true,
+    "allowJs": true,
     "types": ["jest"]
   }
 }

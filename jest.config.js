@@ -9,6 +9,8 @@ module.exports = {
   ],
   transform: {
     '^.+\\.ts$': 'ts-jest',
+    '^.+\\.js$': 'babel-jest',
+    'vee-validate/dist/rules': 'babel-jest',
   },
   moduleNameMapper: {
     '\\.(css|less)$': 'identity-obj-proxy',
@@ -29,10 +31,13 @@ module.exports = {
   globals: {
     'ts-jest': {
       diagnostics: false,
-      tsConfig: 'tsconfig.jest.json'
+      tsConfig: './tsconfig.jest.json'
     }
   },
+  transformIgnorePatterns: [
+    '<rootDir>/node_modules/(?!vee-validate/dist/rules)',
+  ],
   testPathIgnorePatterns: [
-    'node_modules',
+    'node_modules'
   ],
 }
