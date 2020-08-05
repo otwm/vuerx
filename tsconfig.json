@@ -22,7 +22,8 @@
     },
     "types": [
       "@nuxt/types",
-      "@nuxtjs/axios"
+      "@nuxtjs/axios",
+      "@types/jest"
     ]
   }
 }

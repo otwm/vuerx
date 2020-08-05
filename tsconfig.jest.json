@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig",
+  "compilerOptions": {
+    "target": "ES2019",
+    "lib": [
+      "ES2019",
+      "ES2019.Array",
+      "ES2019.Object",
+      "ES2019.String",
+      "ES2019.Symbol",
+      "dom"
+    ],
+    "module": "commonjs",
+    "resolveJsonModule": true,
+    "types": ["jest"]
+  }
+}

@@ -22,14 +22,17 @@
     "dev": "nuxt-ts",
     "build": "nuxt-ts build",
     "start": "nuxt-ts start",
-    "generate": "nuxt-ts build --target static && nuxt-ts export"
+    "test": "jest"
   },
   "devDependencies": {
     "@nuxt/types": "2.13.3",
     "@nuxt/typescript-build": "2.0.2",
     "@types/axios": "^0.14.0",
     "@types/express": "^4.17.7",
-    "@types/ramda": "^0.27.14"
+    "@types/jest": "^26.0.8",
+    "@types/ramda": "^0.27.14",
+    "jest": "^26.2.2",
+    "ts-jest": "^26.1.4"
   },
   "_moduleAliases": {
     "~": ".",
