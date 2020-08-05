@@ -1,4 +1,4 @@
-import { extend, validate } from 'vee-validate'
+import { extend } from 'vee-validate'
 import validateAll from '~/utils/validateAll'
 import * as rules from 'vee-validate/dist/rules'
 
@@ -24,6 +24,16 @@ extend('ip', {
   message: 'Wrong phone number!'
 });
 
+const validationPerson = async () => {
+  return await validateAll([
+    { name: 'first_name', rules: 'required', value: Sebastien.first_name },
+    { name: 'last_name', rules: 'required', value: Sebastien.last_name },
+    { name: 'email', rules: 'required|email', value: Sebastien.contact.email },
+    { name: 'phone', rules: 'required|phone', value: Sebastien.contact.phone },
+    { name: 'ip_address', rules: 'ip', value: Sebastien.ip_address },
+  ])
+}
+
 const Sebastien = {
   'id': 1,
   'first_name': 'Sebastien',
@@ -42,13 +52,7 @@ const Sebastien = {
 }
 describe('normalRx', () => {
   test('validation', async () => {
-    const result = await validateAll([
-      { name: 'first_name', rules: 'required', value: Sebastien.first_name },
-      { name: 'last_name', rules: 'required', value: Sebastien.last_name },
-      { name: 'email', rules: 'required|email', value: Sebastien.contact.email },
-      { name: 'phone', rules: 'required|phone', value: Sebastien.contact.phone },
-      { name: 'ip_address', rules: 'ip', value: Sebastien.ip_address },
-    ])
+    const result = await validationPerson()
     expect(result.valid).toBe(true)
   })
 })
