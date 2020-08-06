@@ -1,5 +1,5 @@
 import 'module-alias/register'
-import express from 'express'
+import express, { NextFunction, Request, Response } from 'express'
 import people from './routes/people'
 
 const app = express()
@@ -9,5 +9,8 @@ app.use((_, res, next) => {
 })
 
 app.use('/people', people)
-
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.log(err)
+  res.json({ err })
+})
 export default app

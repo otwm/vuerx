@@ -2,7 +2,9 @@ import { Person } from '../../types'
 import peopleData from '../../static/random-data.json'
 import { clone, isEmpty, isNil, toUpper } from 'ramda'
 
-// const compareName = ({ first_name, last_name }: Person) => (`${toUpper(first_name + last_name)}`).includes(toUpper(name!))
+const compareName = (name: string) => ({ first_name, last_name }: Person) =>
+  (`${toUpper(first_name + last_name)}`).includes(toUpper(name!))
+
 export default class PeopleRepo {
   private people: Person[] = peopleData
 
@@ -10,9 +12,9 @@ export default class PeopleRepo {
     this.people = [ ...this.people, person]
   }
 
-  list (name: string | undefined) {
+  list (name: string = '') {
     if (isEmpty(name)) return this.people
-    return clone(this.people.filter(({ first_name, last_name }) => (`${first_name}${last_name}`).includes(name!)))
+    return clone(this.people.filter(compareName(name)))
   }
 
   findById (_id: number) {
@@ -22,7 +24,7 @@ export default class PeopleRepo {
   }
 
   findByName (name: string) {
-    return this.people.find(({ first_name, last_name }) => (`${first_name}${last_name}`).includes(name))
+    return this.people.find(compareName(name))
   }
 
   remove (_id: number) {
