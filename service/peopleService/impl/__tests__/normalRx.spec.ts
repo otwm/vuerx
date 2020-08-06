@@ -1,6 +1,8 @@
 import { extend } from 'vee-validate'
 import validateAll from '~/utils/validateAll'
 import * as rules from 'vee-validate/dist/rules'
+import axios from 'axios'
+import { Person } from '~/types'
 
 for (let [rule, validation] of Object.entries(rules)) {
   extend(rule, {
@@ -54,5 +56,15 @@ describe('normalRx', () => {
   test('validation', async () => {
     const result = await validationPerson()
     expect(result.valid).toBe(true)
+  })
+  test('save', () => {
+    const updatePerson = async (person: Person) => {
+      const res = await axios({
+        url: '/server/people',
+        method: 'put',
+        data: person
+      })
+      return res.data
+    }
   })
 })

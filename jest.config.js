@@ -19,7 +19,7 @@ module.exports = {
   },
   collectCoverage: true,
   collectCoverageFrom: [
-    '/**/*.ts',
+    '**/*.ts',
     '!**/node_modules/**'
   ],
   coverageReporters: [

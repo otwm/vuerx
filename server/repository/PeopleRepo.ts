@@ -1,7 +1,8 @@
 import { Person } from '../../types'
 import peopleData from '../../static/random-data.json'
-import { clone, isEmpty, isNil } from 'ramda'
+import { clone, isEmpty, isNil, toUpper } from 'ramda'
 
+// const compareName = ({ first_name, last_name }: Person) => (`${toUpper(first_name + last_name)}`).includes(toUpper(name!))
 export default class PeopleRepo {
   private people: Person[] = peopleData
 
