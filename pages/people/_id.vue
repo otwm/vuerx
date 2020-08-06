@@ -84,6 +84,9 @@
         </button>
       </div>
     </div>
+    <section>
+      <button @click="moveList">list</button>
+    </section>
   </main>
 </template>
 
@@ -103,6 +106,7 @@ export default class IdPage extends Vue {
   person: Person|null = null
   editPerson: Person|object = { contact: {}}
   edit: boolean = false
+  $router: any
 
   mounted () {
     peopleService.detail(Number(this.$route.params.id), {
@@ -125,6 +129,10 @@ export default class IdPage extends Vue {
 
   save () {
     peopleService.update(this.editPerson as Person, this.setPeople)
+  }
+
+  moveList () {
+    this.$router.push('/people')
   }
 
 }
