@@ -1,6 +1,6 @@
 <template>
   <section>
-    <h1 class="header">Nuxt TypeScript Starter</h1>
+    <h1 class="header">Nuxt TypeScript RX Starter</h1>
     <div>
       <label for="name">name: </label><input type="text" name="name" id="name" v-model="name"/>
       <label for="size">size: </label>
