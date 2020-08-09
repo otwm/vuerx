@@ -124,11 +124,13 @@ export default class IdPage extends Vue {
   }
 
   remove () {
-
+    if (!confirm('really remove?')) return
+    this.$router.push('/people')
   }
 
   save () {
     peopleService.update(this.editPerson as Person, this.setPeople)
+    this.edit = false
   }
 
   moveList () {

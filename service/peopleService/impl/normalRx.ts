@@ -2,6 +2,8 @@ import axios from 'axios'
 import { defer, from, of } from 'rxjs'
 import { map, switchMap } from 'rxjs/operators'
 import { Person } from '~/types'
+import '~/utils/addValidation'
+import validateAll from '~/utils/validateAll'
 
 interface Param {
   name: string;
@@ -43,7 +45,28 @@ const normalRx = {
   insert (person: Person, observer: any) {
 
   },
+  async validationPerson (person: Person) {
+    return await validateAll([
+      { name: 'first_name', rules: 'required', value: person.first_name },
+      { name: 'last_name', rules: 'required', value: person.last_name },
+      { name: 'email', rules: 'required|email', value: person.contact.email },
+      { name: 'phone', rules: 'required|phone', value: person.contact.phone },
+      { name: 'ip_address', rules: 'ip', value: person.ip_address },
+    ])
+  },
   update (person: Person, observer: any) {
+    const updatePerson = async (person: Person) => {
+      const res = await axios.request({
+        url: '/server/people',
+        method: 'put',
+        data: person
+      })
+      return res.data
+    }
+    of(person).pipe(
+      // switchMap(this.),
+      switchMap(updatePerson)
+    ).subscribe(observer)
   }
 }
 
