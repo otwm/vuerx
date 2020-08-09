@@ -1,6 +1,6 @@
 import { Person } from '../../types'
 import peopleData from '../../static/random-data.json'
-import { clone, isEmpty, isNil, toUpper } from 'ramda'
+import { clone, head, isEmpty, isNil, toUpper } from 'ramda'
 
 const compareName = (name: string) => ({ first_name, last_name }: Person) =>
   (`${toUpper(first_name + last_name)}`).includes(toUpper(name!))
@@ -35,5 +35,6 @@ export default class PeopleRepo {
   update (person: Person) {
     const start = this.people.findIndex(({ id }) => id === person.id)
     this.people.splice(start, 1, person)
+    return person
   }
 }

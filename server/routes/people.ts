@@ -16,4 +16,12 @@ people.get('/:id', (req, res) => {
   res.json(person)
 })
 
+people.put('/', (req, res) => {
+  if (req.query.pname === 'error') {
+    throw new Error('wtf!')
+  }
+  const person = peopleRepo.update(req.body)
+  res.json(person)
+})
+
 export default people

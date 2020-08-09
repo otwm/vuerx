@@ -3,12 +3,18 @@ import validateAll from '~/utils/validateAll'
 import * as rules from 'vee-validate/dist/rules'
 import axios from 'axios'
 import { Person } from '~/types'
+import observer from '~/utils/observer'
+import { from, of } from 'rxjs'
+import normalRx from '~/service/peopleService'
+import { catchError } from 'rxjs/operators'
 
+const { error: printError } = console
 for (let [rule, validation] of Object.entries(rules)) {
   extend(rule, {
     ...validation,
   });
 }
+
 
 extend('phone', {
   validate(value) {
@@ -25,6 +31,15 @@ extend('ip', {
   },
   message: 'Wrong phone number!'
 });
+
+const next = jest.fn(x => {
+  console.log('x: ', x)
+  return x
+})
+
+const testObserver = {
+  ...observer, next,
+}
 
 const validationPerson = async () => {
   return await validateAll([
@@ -52,19 +67,46 @@ const Sebastien = {
     'street': '9465 Utah Crossing'
   }
 }
+
+jest.mock('axios')
+const mockedAxios = axios as jest.Mocked<typeof axios>;
+
 describe('normalRx', () => {
+  test('search',  (done) => {
+    const resp = { data: Sebastien }
+    mockedAxios.request.mockResolvedValue(resp)
+    normalRx.search({ name: 'Sebastien', size: 1 }, {
+      ...observer, next: (person: Person) => {
+        expect(person).toEqual(Sebastien)
+        done()
+      },
+    })
+  })
+
   test('validation', async () => {
     const result = await validationPerson()
     expect(result.valid).toBe(true)
   })
-  test('save', () => {
+
+  const update = (person: Person, observer: any) => {
     const updatePerson = async (person: Person) => {
-      const res = await axios({
+      return axios({
         url: '/server/people',
         method: 'put',
         data: person
       })
-      return res.data
     }
+
+    from(updatePerson(person)).pipe(catchError(err => {
+      printError(err)
+      return of({ ...Sebastien, last_name: 'kim' })
+    })).subscribe(observer)
+  }
+
+  test('update', () => {
+    update({ ...Sebastien, last_name: 'kim' }, testObserver)
+    // expect(next.mock.calls.length).toBe(1)
+    console.log(next.mock.results)
+    // expect(next.mock.results[0].value).toEqual({ ...Sebastien, last_name: 'kim' })
   })
 })

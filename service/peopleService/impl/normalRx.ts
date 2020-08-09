@@ -20,7 +20,7 @@ const normalRx = {
       return { pname: name, psize: size }
     }
     const send = async (params: ConvertedParam) => {
-      const res = await axios({
+      const res = await axios.request({
         url: '/server/people',
         params
       })
