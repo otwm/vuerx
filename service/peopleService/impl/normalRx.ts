@@ -1,6 +1,6 @@
 import axios from 'axios'
-import { defer, from, of } from 'rxjs'
-import { map, switchMap } from 'rxjs/operators'
+import { defer, from, of, timer } from 'rxjs'
+import { debounce, map, switchMap } from 'rxjs/operators'
 import { Person } from '~/types'
 import '~/utils/addValidation'
 import validateAll from '~/utils/validateAll'
@@ -64,6 +64,7 @@ const normalRx = {
       return res.data
     }
     of(person).pipe(
+      debounce(() => timer(1000)),
       // switchMap(this.),
       switchMap(updatePerson)
     ).subscribe(observer)
