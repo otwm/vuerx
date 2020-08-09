@@ -6,7 +6,7 @@ import { Person } from '~/types'
 import observer from '~/utils/observer'
 import { from, of } from 'rxjs'
 import normalRx from '~/service/peopleService'
-import { catchError } from 'rxjs/operators'
+import { catchError, switchMap } from 'rxjs/operators'
 
 const { error: printError } = console
 for (let [rule, validation] of Object.entries(rules)) {
@@ -88,25 +88,31 @@ describe('normalRx', () => {
     expect(result.valid).toBe(true)
   })
 
-  const update = (person: Person, observer: any) => {
-    const updatePerson = async (person: Person) => {
-      return axios({
-        url: '/server/people',
-        method: 'put',
-        data: person
-      })
-    }
-
-    from(updatePerson(person)).pipe(catchError(err => {
-      printError(err)
-      return of({ ...Sebastien, last_name: 'kim' })
-    })).subscribe(observer)
+  const updatePerson = async (person: Person) => {
+    const res = await axios.request({
+      url: '/server/people',
+      method: 'put',
+      data: person
+    })
+    return res.data
   }
 
-  test('update', () => {
-    update({ ...Sebastien, last_name: 'kim' }, testObserver)
-    // expect(next.mock.calls.length).toBe(1)
-    console.log(next.mock.results)
-    // expect(next.mock.results[0].value).toEqual({ ...Sebastien, last_name: 'kim' })
+  const update = (person: Person, observer: any) => {
+    of(person).pipe(
+      switchMap(updatePerson)
+    ).subscribe(observer)
+  }
+
+  test('update', done => {
+    const newSebastien = { ...Sebastien, last_name: 'kim'}
+    const resp = { data: { ...Sebastien, last_name: 'kim'} }
+    mockedAxios.request.mockResolvedValue(resp)
+
+    update(newSebastien, {
+      ...observer, next: (person: Person) => {
+        expect(person).toEqual(newSebastien)
+        done()
+      },
+    })
   })
 })
