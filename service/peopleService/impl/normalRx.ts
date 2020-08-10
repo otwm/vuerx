@@ -1,6 +1,6 @@
 import axios from 'axios'
-import { defer, from, of, timer } from 'rxjs'
-import { debounce, map, switchMap } from 'rxjs/operators'
+import { defer, from, of, throwError, timer } from 'rxjs'
+import { catchError, concatMap, debounce, delayWhen, map, retryWhen, switchMap, take, tap } from 'rxjs/operators'
 import { Person } from '~/types'
 import '~/utils/addValidation'
 import validateAll from '~/utils/validateAll'
@@ -46,13 +46,18 @@ const normalRx = {
 
   },
   async validationPerson (person: Person) {
-    return await validateAll([
+    const result = await validateAll([
       { name: 'first_name', rules: 'required', value: person.first_name },
       { name: 'last_name', rules: 'required', value: person.last_name },
       { name: 'email', rules: 'required|email', value: person.contact.email },
       { name: 'phone', rules: 'required|phone', value: person.contact.phone },
       { name: 'ip_address', rules: 'ip', value: person.ip_address },
     ])
+    if (result.valid) {
+      return person
+    } else {
+      throw result
+    }
   },
   update (person: Person, observer: any) {
     const updatePerson = async (person: Person) => {
@@ -65,8 +70,20 @@ const normalRx = {
     }
     of(person).pipe(
       debounce(() => timer(1000)),
-      // switchMap(this.),
-      switchMap(updatePerson)
+      switchMap(this.validationPerson),
+      switchMap(updatePerson),
+      retryWhen(errors => {
+        return errors.pipe(
+          delayWhen(() => timer(1000)),
+          tap(() => console.log('retry...')),
+          take(3),
+          // concatMap(throwError)
+        )
+      }),
+      catchError(e => {
+        console.log('eeeee')
+        return of([])
+      })
     ).subscribe(observer)
   }
 }

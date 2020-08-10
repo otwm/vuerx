@@ -79,8 +79,8 @@
         </form>
       </div>
       <div class="action">
-        <button @click="save">
-          save
+        <button @click="update">
+          update
         </button>
       </div>
     </div>
@@ -107,6 +107,7 @@ export default class IdPage extends Vue {
   editPerson: Person|object = { contact: {}}
   edit: boolean = false
   $router: any
+  errors: any
 
   mounted () {
     peopleService.detail(Number(this.$route.params.id), {
@@ -115,6 +116,7 @@ export default class IdPage extends Vue {
   }
 
   setPeople (data: Person) {
+    console.log('setPeople')
     this.person = data
     this.editPerson = data
   }
@@ -128,9 +130,20 @@ export default class IdPage extends Vue {
     this.$router.push('/people')
   }
 
-  save () {
-    peopleService.update(this.editPerson as Person, this.setPeople)
+  update () {
+    peopleService.update(this.editPerson as Person, {
+      next: this.setPeople,
+      error: this.updateError,
+      complete: () => console.log('complete')
+    })
     this.edit = false
+  }
+
+  updateError (error: any) {
+    console.log('error')
+    if (error.valid) {
+      this.errors = error
+    }
   }
 
   moveList () {
