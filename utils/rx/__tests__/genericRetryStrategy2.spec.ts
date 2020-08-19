@@ -1,8 +1,8 @@
-import { TestScheduler } from 'rxjs/testing'
-import { Observable, throwError, timer } from 'rxjs'
+import { Observable, of, throwError, timer } from 'rxjs'
 import { catchError, map, mergeMap, retryWhen, tap } from 'rxjs/operators'
 import MaxRetryException from '~/exceptions/MaxRetryException'
 import { curry } from 'ramda'
+import { TestScheduler } from 'rxjs/testing'
 
 interface RetryConfig {
   maxRetryAttempts: number;
@@ -24,12 +24,11 @@ const defaultRetryConfig = {
   isThrow: isThrowByStatusDefault
 }
 
-describe('genericRetryStrategy', () => {
+describe('      ,', () => {
   let scheduler: TestScheduler
 
   beforeEach(() => {
     scheduler = new TestScheduler((actual, expected) => {
-      // console.log('compare: ',actual, expected)
       return expect(actual).toEqual(expected)
     })
   })
@@ -47,44 +46,19 @@ describe('genericRetryStrategy', () => {
     }
 
   const myObservable = (source$: Observable<number>) => source$.pipe(
-    map(n => n * 10),
-    retryWhen(genericRetryStrategy())
+    map(n => n * 10)
   )
 
-  test('direct throw', () => {
+  test('retry n case', (done) => {
     scheduler.run(({ cold, expectObservable }) => {
       const value = { a: 1, b: 2, c: 3 }
-      const source$ = cold('-a--b-c-#', value)
-      const expectedMarble = '-a--b-c-#'
+      const source$ = cold('-a--b-c-|', value)
+      const expectedMarble = '-a--b-c-|'
       const expectedValues = { a: 10 , b: 20, c: 30 }
 
       const result$ = myObservable(source$)
       expectObservable(result$).toBe(expectedMarble, expectedValues)
     })
   })
-
-  test('retry case', () => {
-    scheduler.run(({ cold, expectObservable }) => {
-      const value = { a: 1, b: 2, c: 3 }
-      const source$ = cold('-a--b-c-#', value)
-      const expectedMarble = '-a--b-c-#'
-      const expectedValues = { a: 10 , b: 20, c: 30 }
-
-      const retryObservable = (source$: Observable<number>) => source$.pipe(
-        tap(console.log),
-        map(n => n * 10),
-        catchError((error) => {
-          console.log(error)
-          return throwError({ status: 503 })
-        }),
-        retryWhen(genericRetryStrategy({
-          maxRetryAttempts: 2,
-          duration: 3,
-          isThrow: isThrowByStatusDefault,
-        }))
-      )
-      const result$ = retryObservable(source$)
-      expectObservable(result$).toBe(expectedMarble, expectedValues)
-    })
-  })
 })
+
