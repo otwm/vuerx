@@ -1,50 +1,18 @@
 import { TestScheduler } from 'rxjs/testing'
-import { Observable, throwError, timer } from 'rxjs'
-import { catchError, map, mergeMap, retryWhen, tap } from 'rxjs/operators'
+import { Observable } from 'rxjs'
+import { map, retryWhen, tap } from 'rxjs/operators'
 import MaxRetryException from '~/exceptions/MaxRetryException'
-import { curry } from 'ramda'
-
-interface RetryConfig {
-  maxRetryAttempts: number;
-  duration: number;
-  isThrow: (errors: Observable<any>) => boolean;
-}
-
-const isThrowByStatus = (
-  targetStatus: number[], error: any
-) => !targetStatus.includes(error.status)
-
-const isThrowByStatusDefault = curry(isThrowByStatus)([
-  503, 520
-])
-
-const defaultRetryConfig = {
-  maxRetryAttempts: 3,
-  duration: 1000,
-  isThrow: isThrowByStatusDefault
-}
+import InternalServerError from '~/exceptions/InternalServerError'
+import genericRetryStrategy, { isThrowByExceptStatusDefault } from '~/utils/rx/genericRetryStrategy'
 
 describe('genericRetryStrategy', () => {
   let scheduler: TestScheduler
 
   beforeEach(() => {
     scheduler = new TestScheduler((actual, expected) => {
-      // console.log('compare: ',actual, expected)
       return expect(actual).toEqual(expected)
     })
   })
-
-  const genericRetryStrategy = (retryConfig: RetryConfig = defaultRetryConfig) =>
-    (errors: Observable<any>): Observable<any> => {
-      return errors.pipe(
-        mergeMap((error, index) => {
-          const { isThrow, duration, maxRetryAttempts } = retryConfig
-          if (isThrow(error)) return throwError(error)
-          if ((index + 1) === maxRetryAttempts) return throwError(new MaxRetryException(error))
-          return timer(duration)
-        })
-      )
-    }
 
   const myObservable = (source$: Observable<number>) => source$.pipe(
     map(n => n * 10),
@@ -63,28 +31,47 @@ describe('genericRetryStrategy', () => {
     })
   })
 
-  test('retry case', () => {
+  test('일반 적인 에러는 그냥 에러가 난다. 리트라이 없이 fail', () => {
     scheduler.run(({ cold, expectObservable }) => {
       const value = { a: 1, b: 2, c: 3 }
-      const source$ = cold('-a--b-c-#', value)
-      const expectedMarble = '-a--b-c-#'
+      const source$ = cold('-a-#', value)
+      const expectedMarble = '-a-#'
       const expectedValues = { a: 10 , b: 20, c: 30 }
 
       const retryObservable = (source$: Observable<number>) => source$.pipe(
         tap(console.log),
         map(n => n * 10),
-        catchError((error) => {
-          console.log(error)
-          return throwError({ status: 503 })
-        }),
         retryWhen(genericRetryStrategy({
           maxRetryAttempts: 2,
           duration: 3,
-          isThrow: isThrowByStatusDefault,
+          isThrow: isThrowByExceptStatusDefault,
         }))
       )
       const result$ = retryObservable(source$)
       expectObservable(result$).toBe(expectedMarble, expectedValues)
+    })
+  })
+
+  test('retry case. 4번의 재시도 끝에 실패한다.', () => {
+    scheduler.run(({ cold, expectObservable }) => {
+      const value = { a: 1, b: 2, c: 3 }
+      const source$ = cold('a-#', value, new InternalServerError())
+      const expectedMarble = 'a--a--a--a-#'
+      const expectedValues = { a: 10 , b: 20, c: 30 }
+      const retryObservable = (source$: Observable<number>) => source$.pipe(
+        tap(console.log),
+        map(n => n * 10),
+        retryWhen(genericRetryStrategy({
+          maxRetryAttempts: 4,
+          duration: 1,
+          isThrow: isThrowByExceptStatusDefault,
+        }))
+      )
+      const result$ = retryObservable(source$)
+      expectObservable(result$).toBe(
+        expectedMarble, expectedValues,
+        new MaxRetryException(new InternalServerError())
+      )
     })
   })
 })

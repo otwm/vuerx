@@ -1,35 +1,43 @@
 import { Observable, throwError, timer } from 'rxjs'
-import { finalize, mergeMap } from 'rxjs/operators'
+import { mergeMap } from 'rxjs/operators'
+import MaxRetryException from '~/exceptions/MaxRetryException'
+import { curry } from 'ramda'
 
-const genericRetryStrategy = ({
-                                       maxRetryAttempts = 3,
-                                       scalingDuration = 1000,
-                                       excludedStatusCodes = []
-                                     }: {
-  maxRetryAttempts?: number,
-  scalingDuration?: number,
-  excludedStatusCodes?: number[]
-} = {}) => (attempts: Observable<any>) => {
-  return attempts.pipe(
-    mergeMap((error, i) => {
-      const retryAttempt = i + 1
-      // if maximum number of retries have been met
-      // or response is a status code we don't wish to retry, throw error
-      if (
-        retryAttempt > maxRetryAttempts ||
-        excludedStatusCodes.find(e => e === error.status)
-      ) {
-        return throwError(error)
-      }
-      console.log(
-        `Attempt ${retryAttempt}: retrying in ${retryAttempt *
-        scalingDuration}ms`
-      )
-      // retry after 1s, 2s, etc...
-      return timer(retryAttempt * scalingDuration)
-    }),
-    finalize(() => console.log('We are done!'))
-  )
+export interface RetryConfig {
+  maxRetryAttempts: number;
+  duration: number;
+  isThrow: (errors: Observable<any>) => boolean;
 }
+
+export const isThrowByExceptStatus = (
+  targetStatus: number[], error: any
+) => {
+  return !targetStatus.includes(error.status)
+}
+
+export const isThrowByExceptStatusDefault = curry(isThrowByExceptStatus)([
+  503, 520
+])
+
+export const defaultRetryConfig = {
+  maxRetryAttempts: 3,
+  duration: 1000,
+  isThrow: isThrowByExceptStatusDefault
+}
+
+const genericRetryStrategy = (retryConfig: RetryConfig = defaultRetryConfig) =>
+  (errors: Observable<any>): Observable<any> => {
+    return errors.pipe(
+      mergeMap((error, index) => {
+        const { isThrow, duration, maxRetryAttempts } = retryConfig
+        if (isThrow(error)) return throwError(error)
+        if ((index + 1) === maxRetryAttempts) {
+          return throwError(new MaxRetryException(error))
+        }
+        console.log('duration', duration)
+        return timer(duration)
+      })
+    )
+  }
 
 export default genericRetryStrategy
