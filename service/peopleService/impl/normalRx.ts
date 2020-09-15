@@ -4,15 +4,12 @@ import { catchError, concatMap, debounce, delayWhen, map, retryWhen, switchMap, 
 import { Person } from '~/types'
 import '~/utils/addValidation'
 import validateAll from '~/utils/validateAll'
+import genericRetryStrategy from '~/utils/rx/genericRetryStrategy'
+import { searchPeople, updatePerson, ConvertedParam, retrievePeople } from '~/api/peopleApi'
 
 interface Param {
   name: string;
   size: number;
-}
-
-interface ConvertedParam {
-  pname: string;
-  psize: number;
 }
 
 const normalRx = {
@@ -21,29 +18,13 @@ const normalRx = {
       const { name, size } = params
       return { pname: name, psize: size }
     }
-    const send = async (params: ConvertedParam) => {
-      const res = await axios.request({
-        url: '/server/people',
-        params
-      })
-      return res.data
-    }
     of(params).pipe(
       map(query2Param),
-      switchMap(send)
+      switchMap(searchPeople)
     ).subscribe(observer)
   },
   detail (id: number, observer: any) {
-    const send = async (id: number) => {
-      const res = await axios({
-        url: `/server/people/${id}`,
-      })
-      return res.data
-    }
-    from(send(id)).subscribe(observer)
-  },
-  insert (person: Person, observer: any) {
-
+    from(retrievePeople(id)).subscribe(observer)
   },
   async validationPerson (person: Person) {
     const result = await validateAll([
@@ -60,30 +41,12 @@ const normalRx = {
     }
   },
   update (person: Person, observer: any) {
-    const updatePerson = async (person: Person) => {
-      const res = await axios.request({
-        url: '/server/people',
-        method: 'put',
-        data: person
-      })
-      return res.data
-    }
     of(person).pipe(
       debounce(() => timer(1000)),
       switchMap(this.validationPerson),
       switchMap(updatePerson),
-      retryWhen(errors => {
-        return errors.pipe(
-          delayWhen(() => timer(1000)),
-          tap(() => console.log('retry...')),
-          take(3),
-          // concatMap(throwError)
-        )
-      }),
-      catchError(e => {
-        console.log('eeeee')
-        return of([])
-      })
+      retryWhen(genericRetryStrategy()),
+      catchError(e => e)
     ).subscribe(observer)
   }
 }

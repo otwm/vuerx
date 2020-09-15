@@ -4,6 +4,7 @@ import { map, retryWhen, tap } from 'rxjs/operators'
 import MaxRetryException from '~/exceptions/MaxRetryException'
 import InternalServerError from '~/exceptions/InternalServerError'
 import genericRetryStrategy, { isThrowByExceptStatusDefault } from '~/utils/rx/genericRetryStrategy'
+import ResourceNotFound from '~/exceptions/ResourceNotFound'
 
 describe('genericRetryStrategy', () => {
   let scheduler: TestScheduler
@@ -19,7 +20,7 @@ describe('genericRetryStrategy', () => {
     retryWhen(genericRetryStrategy())
   )
 
-  test('direct throw', () => {
+  test.skip('direct throw', () => {
     scheduler.run(({ cold, expectObservable }) => {
       const value = { a: 1, b: 2, c: 3 }
       const source$ = cold('-a--b-c-#', value)
@@ -31,10 +32,10 @@ describe('genericRetryStrategy', () => {
     })
   })
 
-  test('일반 적인 에러는 그냥 에러가 난다. 리트라이 없이 fail', () => {
+  test('404 에러는 그냥 에러가 난다. 리트라이 없이 fail', () => {
     scheduler.run(({ cold, expectObservable }) => {
       const value = { a: 1, b: 2, c: 3 }
-      const source$ = cold('-a-#', value)
+      const source$ = cold('-a-#', value, new ResourceNotFound())
       const expectedMarble = '-a-#'
       const expectedValues = { a: 10 , b: 20, c: 30 }
 
@@ -48,7 +49,7 @@ describe('genericRetryStrategy', () => {
         }))
       )
       const result$ = retryObservable(source$)
-      expectObservable(result$).toBe(expectedMarble, expectedValues)
+      expectObservable(result$).toBe(expectedMarble, expectedValues, new MaxRetryException(new ResourceNotFound()))
     })
   })
 

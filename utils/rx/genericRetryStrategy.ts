@@ -1,7 +1,7 @@
 import { Observable, throwError, timer } from 'rxjs'
 import { mergeMap } from 'rxjs/operators'
 import MaxRetryException from '~/exceptions/MaxRetryException'
-import { curry } from 'ramda'
+import { curry, isNil } from 'ramda'
 
 export interface RetryConfig {
   maxRetryAttempts: number;
@@ -12,6 +12,7 @@ export interface RetryConfig {
 export const isThrowByExceptStatus = (
   targetStatus: number[], error: any
 ) => {
+  if (isNil(error.status)) return false
   return !targetStatus.includes(error.status)
 }
 
